@@ -1,0 +1,111 @@
+﻿Flow ID,Flow Name,Customer,Department,Capability,Run Count,Error Rate,Manual Time,Transaction Volume
+1,Campaign Bot,Internal,Sales,Sales,648,6,17,9720
+2,Schedule Flow,Atlas Energy,Planning,Planning,58,5,111,58
+3,Permit Automation,Summit Bank,Finance,Government Affairs,79,0,145,1106
+4,Onboarding Tracking,Quantum Telecom,HR,HR,2063,8,49,4126
+5,License Monitoring,Zenith Insurance,Government Affairs,Government Affairs,1057,0,161,4228
+6,Capacity Approval,Zenith Insurance,Planning,Planning,699,2,66,9087
+7,Contract Flow,Orion Manufacturing,Legal,Legal,2206,4,76,22060
+8,Payment Automation,Nova Retail,Finance,Finance,255,0,174,510
+9,Project Monitoring,Zenith Insurance,Planning,Planning,2834,12,119,5668
+10,Expense Tracking,Vertex Construction,Finance,Finance,2068,6,177,28952
+11,Access Tracking,Vertex Construction,IT,IT,123,1,159,246
+12,Capacity Processing,Orion Manufacturing,Planning,Planning,353,4,23,1059
+13,Access Reporting,Nova Retail,IT,IT,1940,3,94,21340
+14,Maintenance Flow,Nova Retail,Operations,Operations,24,4,153,72
+15,Lead Tracking,Atlas Energy,Sales,Sales,73,10,134,730
+16,Budget Reconciliation,Atlas Energy,Planning,Finance,503,8,105,503
+17,Compliance Automation,Nova Retail,Government Affairs,Legal,19,0,148,57
+18,Resource Automation,ABC Holding,Finance,Planning,31,8,67,186
+19,Filing Management,ABC Holding,Government Affairs,Government Affairs,577,2,24,1731
+20,Employee Management,Pioneer Healthcare,HR,HR,93,1,138,558
+21,Leave Approval,Vertex Construction,Operations,HR,367,1,94,4771
+22,Agreement Approval,Quantum Telecom,Legal,Legal,1713,12,52,22269
+23,Litigation Reporting,Delta Logistics,Legal,Legal,630,10,10,630
+24,Quote Reconciliation,Summit Bank,Sales,Sales,557,0,59,1114
+25,Agreement Reconciliation,Delta Logistics,Legal,Legal,739,8,91,9607
+26,Expense Automation,Pioneer Healthcare,Sales,Finance,27,12,104,216
+27,Quality Automation,Nova Retail,Operations,Operations,1419,4,170,4257
+28,Regulatory Monitoring,Nova Retail,IT,Government Affairs,75,0,169,150
+29,Forecast Bot,Delta Logistics,Planning,Planning,32,2,131,128
+30,License Management,Atlas Energy,Government Affairs,Government Affairs,162,8,152,2268
+31,Forecast Reporting,Quantum Telecom,Planning,Planning,1421,5,7,19894
+32,Access Bot,Nova Retail,IT,IT,2739,10,33,24651
+33,Budget Management,Quantum Telecom,Finance,Finance,1234,0,66,4936
+34,Quote Processing,Quantum Telecom,Sales,Sales,62,4,86,620
+35,Schedule Monitoring,Orion Manufacturing,Planning,Planning,620,5,66,7440
+36,Forecast Tracking,Pioneer Healthcare,Sales,Planning,526,4,83,1052
+37,Litigation Reporting,Vertex Construction,Legal,Legal,1432,8,172,8592
+38,Leave Tracking,Delta Logistics,Government Affairs,HR,196,1,173,2744
+39,Agreement Bot,Quantum Telecom,Legal,Legal,56,2,84,112
+40,Warehouse Processing,Pioneer Healthcare,Operations,Operations,118,5,162,590
+41,Schedule Automation,Delta Logistics,Planning,Planning,186,0,49,930
+42,Onboarding Reporting,Vertex Construction,HR,HR,1411,5,149,11288
+43,Campaign Automation,Nova Retail,Sales,Sales,59,8,25,767
+44,Lead Automation,Delta Logistics,Sales,Sales,370,0,89,3330
+45,Server Tracking,Internal,IT,IT,72,2,15,216
+46,Compliance Tracking,Quantum Telecom,Legal,Legal,2625,8,48,13125
+47,Inventory Processing,Internal,Finance,Operations,1576,4,65,23640
+48,Access Automation,Vertex Construction,IT,IT,2827,3,132,14135
+49,NDA Flow,Vertex Construction,Legal,Legal,22,1,6,44
+50,Lead Reporting,ABC Holding,Sales,Sales,2872,2,156,11488
+51,Order Processing,Nova Retail,Sales,Sales,556,2,87,5004
+52,Campaign Flow,Orion Manufacturing,Sales,Sales,32,2,100,64
+53,Network Tracking,Delta Logistics,IT,IT,36,2,25,108
+54,Quality Monitoring,Internal,Operations,Operations,43,6,138,602
+55,Leave Monitoring,Zenith Insurance,HR,HR,606,10,161,6666
+56,Leave Processing,Quantum Telecom,HR,HR,85,5,132,850
+57,Payroll Monitoring,Vertex Construction,Finance,Finance,93,0,13,279
+58,Warehouse Automation,Pioneer Healthcare,Operations,Operations,877,5,177,3508
+59,Capacity Tracking,ABC Holding,Planning,Planning,100,8,137,200
+60,Network Tracking,Orion Manufacturing,IT,IT,1745,8,120,13960
+61,Maintenance Automation,Vertex Construction,Operations,Operations,41,6,40,246
+62,Lead Tracking,Nova Retail,Sales,Sales,593,2,175,1186
+63,NDA Reconciliation,Quantum Telecom,Legal,Legal,575,12,33,8625
+64,Project Flow,ABC Holding,Planning,Planning,117,0,132,936
+65,Quote Reporting,Delta Logistics,Sales,Sales,14,10,137,70
+66,Warehouse Bot,Vertex Construction,Operations,Operations,1261,2,62,10088
+67,Capacity Reporting,Internal,Planning,Planning,797,2,39,5579
+68,Inventory Reporting,Zenith Insurance,Operations,Operations,432,0,53,5184
+69,Invoice Tracking,ABC Holding,Finance,Finance,499,3,73,6986
+70,Budget Tracking,Vertex Construction,Finance,Finance,41,2,114,369
+71,Campaign Flow,Atlas Energy,Sales,Sales,2438,5,55,29256
+72,Expense Processing,Pioneer Healthcare,Planning,Finance,241,0,143,723
+73,Timesheet Reconciliation,Orion Manufacturing,HR,HR,361,8,64,1805
+74,Network Approval,ABC Holding,IT,IT,26,1,131,390
+75,Capacity Approval,Zenith Insurance,Planning,Planning,1371,1,65,2742
+76,Contract Management,Zenith Insurance,Legal,Legal,1858,1,8,22296
+77,Server Reporting,Quantum Telecom,IT,IT,485,12,18,3880
+78,Quote Monitoring,Vertex Construction,Legal,Sales,69,2,66,483
+79,Quality Reconciliation,Orion Manufacturing,Operations,Operations,230,10,124,2300
+80,Capacity Processing,Quantum Telecom,Planning,Planning,64,1,42,192
+81,Forecast Automation,ABC Holding,Government Affairs,Planning,75,1,148,1125
+82,Tax Tracking,Quantum Telecom,Operations,Finance,86,0,79,774
+83,License Flow,Delta Logistics,Government Affairs,Government Affairs,842,2,120,4210
+84,Campaign Flow,Delta Logistics,Sales,Sales,352,10,169,1760
+85,Budget Processing,Vertex Construction,Finance,Finance,530,1,173,3710
+86,Warehouse Flow,Zenith Insurance,Operations,Operations,2284,3,53,2284
+87,Order Approval,Pioneer Healthcare,Sales,Sales,30,4,59,150
+88,Order Automation,Summit Bank,Government Affairs,Sales,328,8,17,3280
+89,Leave Reporting,Internal,HR,HR,81,10,18,243
+90,Quality Reconciliation,ABC Holding,IT,Operations,15,1,170,225
+91,Forecast Reconciliation,Vertex Construction,Planning,Planning,487,4,46,974
+92,Invoice Automation,Zenith Insurance,Finance,Finance,226,2,82,3164
+93,Ticket Automation,Pioneer Healthcare,IT,IT,30,2,96,360
+94,Network Processing,Delta Logistics,IT,IT,514,0,121,1028
+95,Budget Tracking,ABC Holding,Finance,Finance,447,2,160,447
+96,Lead Management,Internal,Operations,Sales,97,1,30,776
+97,Backup Reporting,Atlas Energy,IT,IT,68,0,80,952
+98,Leave Monitoring,Zenith Insurance,HR,HR,1123,1,103,14599
+99,Timesheet Flow,Vertex Construction,HR,HR,9,3,29,18
+100,Lead Monitoring,ABC Holding,Sales,Sales,58,1,37,406
+101,Backup Monitoring,Quantum Telecom,Sales,IT,224,2,148,1120
+102,Warehouse Tracking,Delta Logistics,Operations,Operations,61,1,42,305
+103,License Flow,Atlas Energy,Government Affairs,Government Affairs,2878,1,169,37414
+104,Employee Reconciliation,Internal,HR,HR,336,0,78,1344
+105,Recruitment Processing,Summit Bank,HR,HR,2324,1,117,23240
+106,Lead Processing,Summit Bank,Sales,Sales,95,0,97,570
+107,Leave Processing,Orion Manufacturing,HR,HR,9,2,107,99
+108,Warehouse Bot,ABC Holding,Operations,Operations,2830,4,19,19810
+109,Employee Reporting,Nova Retail,HR,HR,1173,1,104,14076
+110,Quote Reporting,Atlas Energy,Operations,Sales,419,3,7,5866
