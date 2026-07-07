@@ -21,7 +21,7 @@ net olarak görülemiyor. Bu proje, bu ham veriyi otomatik olarak sınıflandır
 ## 2. Sistem Mimarisi
 | Katman | Teknoloji | Sorumlu |
 |---|---|---|
-| Veri işleme & sınıflandırma | Python / pandas | [Merve Mızrak] |
+| Veri işleme & sınıflandırma | Python | [Merve Mızrak] |
 | Veri depolama | SQLite | [Merve Mızrak] |
 | Dashboard | Streamlit | [Sedat Bakla] |
 | Skorlama mantığı (iş kuralı) | Excel prototip → Python | [Beyza Öztürk] |
