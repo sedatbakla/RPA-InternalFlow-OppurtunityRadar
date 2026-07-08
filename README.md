@@ -3,7 +3,7 @@
 Arya-AI Stajyer Proje Portföyü kapsamında geliştirilen, şirket içi bot/akış (flow) geçmişini analiz ederek yeni satış fırsatlarına, bakım önceliklerine ve ürünleşebilir task kataloglarına dönüştüren bir sistem.
 
 **Teslim tarihi:** 17 Temmuz Cuma
-**Ekip:** [Merve Mızrak] (Yazılım Mühendisi) · [Sedat Bakla] (Bilgisayar Mühendisi) · [Beyza Öztürk] (Endüstri Mühendisi)
+**Ekip:** [Merve Mızraklı] (Yazılım Mühendisi) · [Sedat Bakla] (Bilgisayar Mühendisi) · [Beyza Öztürk] (Endüstri Mühendisi)
 
 ---
 
@@ -21,8 +21,8 @@ net olarak görülemiyor. Bu proje, bu ham veriyi otomatik olarak sınıflandır
 ## 2. Sistem Mimarisi
 | Katman | Teknoloji | Sorumlu |
 |---|---|---|
-| Veri işleme & sınıflandırma | Python | [Merve Mızrak] |
-| Veri depolama | SQLite | [Merve Mızrak] |
+| Veri işleme & sınıflandırma | Python | [Merve Mızraklı] |
+| Veri depolama | SQLite | [Merve Mızraklı] |
 | Dashboard | Streamlit | [Sedat Bakla] |
 | Skorlama mantığı (iş kuralı) | Excel prototip → Python | [Beyza Öztürk] |
 
@@ -154,8 +154,8 @@ streamlit run app.py
 
 | İsim | Rol | Sorumluluk |
 |---|---|---|
-| [Merve Mızrak] | Yazılım Mühendisi | Veri işleme, sınıflandırma, skorlama kodu |
-| [Sedat Bakla] | Bilgisayar Mühendisi | Dashboard, sistem mimarisi, entegrasyon |
+| [Merve Mızraklı] | Yazılım Mühendisi | Sistem mimarisi,veri işleme,skorlama kodu |
+| [Sedat Bakla] | Bilgisayar Mühendisi | Dashboard,sınıflandırma entegrasyon |
 | [Beyza Öztürk] | Endüstri Mühendisi | Veri tasarımı, skorlama mantığı, dokümantasyon |
 
 ---
