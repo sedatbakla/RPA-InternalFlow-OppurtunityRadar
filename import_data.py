@@ -4,7 +4,7 @@ from database import get_connection #our main db file in this project so we need
 def import_flows():
     conn = get_connection()  #connetcion with db
 
-    df = pd.read_csv("Templates/Data/flow_catalog_sample.csv")  # pandas is reading this file as data frame
+    df = pd.read_csv("data/flow_catalog_sample.csv")  # pandas is reading this file as data frame
     df.to_sql(        
         name="flows", #file name in db
         con=conn,     #A link opens for each section.
@@ -20,7 +20,7 @@ def import_taxonomy():
 
     conn = get_connection()
 
-    df = pd.read_csv("Templates/Data/task_capability_taxonomy.csv")
+    df = pd.read_csv("data/task_capability_taxonomy.csv")
 
     df.to_sql(
         name="taxonomy",
