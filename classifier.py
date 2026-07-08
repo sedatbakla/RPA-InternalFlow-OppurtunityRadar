@@ -3,6 +3,7 @@ from database import get_all_flows, get_taxonomy,save_classification
 
 flows = get_all_flows()
 
+
 taxonomy = get_taxonomy()
 
 def classify_flow(flow_name, taxonomy):
