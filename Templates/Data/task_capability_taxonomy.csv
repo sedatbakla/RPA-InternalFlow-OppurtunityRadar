@@ -1,0 +1,41 @@
+﻿Keyword,Capability
+Invoice,Finance
+Payroll,Finance
+Tax,Finance
+Budget,Finance
+Payment,Finance
+Expense,Finance
+Employee,HR
+Recruitment,HR
+Onboarding,HR
+Leave,HR
+Timesheet,HR
+Contract,Legal
+Compliance,Legal
+NDA,Legal
+Agreement,Legal
+Litigation,Legal
+Lead,Sales
+Quote,Sales
+Order,Sales
+CRM,Sales
+Campaign,Sales
+Shipment,Operations
+Inventory,Operations
+Warehouse,Operations
+Maintenance,Operations
+Quality,Operations
+Server,IT
+Ticket,IT
+Access,IT
+Backup,IT
+Network,IT
+Capacity,Planning
+Schedule,Planning
+Forecast,Planning
+Resource,Planning
+Project,Planning
+Permit,Government Affairs
+License,Government Affairs
+Filing,Government Affairs
+Regulatory,Government Affairs

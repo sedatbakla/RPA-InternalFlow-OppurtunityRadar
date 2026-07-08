@@ -1,0 +1,11 @@
+﻿Flow ID,Flow Name,Customer,Department,Capability,Run Count,Error Rate,Manual Time,Transaction Volume,Customer Count
+1,Invoice Processing,ABC Holding,Finance,Finance,2500,2,45,18000,3
+2,Payroll Automation,Internal,Finance,Finance,320,1,90,4800,3
+3,Employee Onboarding Flow,Nova Retail,HR,HR,80,3,60,240,1
+4,Contract Approval Bot,Delta Logistics,Legal,Legal,150,4,120,600,1
+5,Lead Tracking Automation,Orion Manufacturing,Sales,Sales,900,5,20,9000,1
+6,Shipment Monitoring Bot,Delta Logistics,Operations,Operations,1200,6,30,14400,1
+7,Server Backup Flow,Internal,IT,IT,60,0,15,60,1
+8,Capacity Planning Bot,Atlas Energy,Planning,Planning,40,1,180,40,1
+9,Permit Filing Automation,Summit Bank,Finance,Government Affairs,75,2,100,750,1
+10,Tax Reporting Flow,Zenith Insurance,Finance,Finance,500,3,75,6000,3
