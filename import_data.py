@@ -3,7 +3,7 @@ from database import get_connection #our main db file in this project so we need
 
 def import_flows():
     conn = get_connection()  #connetcion with db
-
+ 
     df = pd.read_csv("data/flow_catalog_sample.csv")  # pandas is reading this file as data frame
     df.to_sql(        
         name="flows", #file name in db
