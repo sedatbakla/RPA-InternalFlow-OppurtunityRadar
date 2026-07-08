@@ -155,7 +155,7 @@ streamlit run app.py
 | İsim | Rol | Sorumluluk |
 |---|---|---|
 | [Merve Mızraklı] | Yazılım Mühendisi | Sistem mimarisi,veri işleme,skorlama kodu |
-| [Sedat Bakla] | Bilgisayar Mühendisi | Dashboard,sınıflandırma entegrasyon |
+| [Sedat Bakla] | Bilgisayar Mühendisi | Dashboard,sınıflandırma, entegrasyon |
 | [Beyza Öztürk] | Endüstri Mühendisi | Veri tasarımı, skorlama mantığı, dokümantasyon |
 
 ---
