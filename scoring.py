@@ -104,4 +104,3 @@ score_df = flows[
 
 save_scores(score_df)
 
-print(flows.head(10))
