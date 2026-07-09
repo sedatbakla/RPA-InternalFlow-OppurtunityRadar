@@ -88,7 +88,7 @@ flows["Opportunity Score"] = (
     flows["Product Score"] * 0.30 +
     flows["Time Saving Score"] * 0.15 -
     flows["Risk Score"] * 0.20
-)
+).clip(0,100)
 
 #------------------------------------------------------------------------------------------- 
 
