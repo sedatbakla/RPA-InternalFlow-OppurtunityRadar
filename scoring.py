@@ -106,7 +106,7 @@ score_df = flows[
         "Product Score",
         "Opportunity Score"
     ]
-]
+].round(3)
 
 save_scores(score_df)
 
