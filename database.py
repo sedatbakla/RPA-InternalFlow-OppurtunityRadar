@@ -1,134 +1,80 @@
-<<<<<<<<< Temporary merge branch 1
-#main connection file to database
+"""SQLite helpers for the Internal Flow Opportunity Radar data pipeline."""
+
+from __future__ import annotations
+
+import sqlite3
+from pathlib import Path
 
 import pandas as pd
-import sqlite3 #database we are going to use
-
-DATABASE_NAME = "arya.db"  
-
-def get_connection():  #creaiting a connection.
-   try:
-        conn = sqlite3.connect(DATABASE_NAME)
-        return conn
-   except sqlite3.Error as e:  #testing the connection.
-        print(f"Veritabanına bağlanırken bir hata oluştu: {e}")
-        return None
-
-def get_all_flows():  #Retrieve all flows from the database
-    conn=get_connection()  
-
-    df=pd.read_sql(
-        "SELECT * FROM flows",conn  #Retrieve flows from the database
-    )
-    conn.close()  #closing the connection
-    return df  
 
 
-def get_taxonomy():
-    conn = get_connection()
-
-    df = pd.read_sql(
-        "SELECT * FROM taxonomy",conn
-    )
-    conn.close()
-    return df
+PROJECT_ROOT = Path(__file__).resolve().parent
+DATABASE_PATH = PROJECT_ROOT / "db" / "arya.db"
 
 
-def save_scores(df):  #The scores has been calculated , is going to new table.
-
-    conn = get_connection()
-
-    df.to_sql(
-        name="flow_scores",
-        con=conn,
-        if_exists="replace",
-        index=False
-    )
-
-    conn.close()
-
-print("Flow scores table created.")
+def get_connection() -> sqlite3.Connection:
+    """Return a connection to the project-local SQLite database."""
+    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    return sqlite3.connect(DATABASE_PATH)
 
 
-def save_classification(df):
+def _read_table(table_name: str) -> pd.DataFrame:
+    """Read a pipeline table and raise a clear error when it is unavailable."""
+    connection = get_connection()
 
-    conn = get_connection()
-
-    df.to_sql(
-        "flow_classification",
-        conn,
-        if_exists="replace",
-        index=False
-    )
-
-    conn.close()
-    
-print("Classification table created.")
-
-#main connection file to database
+    try:
+        return pd.read_sql_query(f"SELECT * FROM {table_name}", connection)
+    except Exception as error:
+        raise RuntimeError(
+            f"The '{table_name}' table is unavailable. Run the required pipeline step first."
+        ) from error
+    finally:
+        connection.close()
 
 
-import pandas as pd
-import sqlite3 #database we are going to use
+def _save_table(dataframe: pd.DataFrame, table_name: str) -> None:
+    """Replace a pipeline table with the supplied DataFrame."""
+    if not isinstance(dataframe, pd.DataFrame):
+        raise TypeError("dataframe must be a pandas DataFrame")
 
-DATABASE_NAME = "arya.db"  
+    connection = get_connection()
 
-def get_connection():  #creaiting a connection.
-   try:
-        conn = sqlite3.connect(DATABASE_NAME)
-        return conn
-   except sqlite3.Error as e:  #testing the connection.
-        print(f"Veritabanına bağlanırken bir hata oluştu: {e}")
-        return None
-
-def get_all_flows():  #Retrieve all flows from the database
-    conn=get_connection()  
-
-    df=pd.read_sql(
-        "SELECT * FROM flows",conn  #Retrieve flows from the database
-    )
-    conn.close()  #closing the connection
-    return df  
+    try:
+        dataframe.to_sql(
+            name=table_name,
+            con=connection,
+            if_exists="replace",
+            index=False,
+        )
+    finally:
+        connection.close()
 
 
-def get_taxonomy():
-    conn = get_connection()
-
-    df = pd.read_sql(
-        "SELECT * FROM taxonomy",conn
-    )
-    conn.close()
-    return df
+def get_all_flows() -> pd.DataFrame:
+    """Return imported flow records."""
+    return _read_table("flows")
 
 
-def save_scores(df):  #The scores has been calculated , is going to new table.
-
-    conn = get_connection()
-
-    df.to_sql(
-        name="flow_scores",
-        con=conn,
-        if_exists="replace",
-        index=False
-    )
-
-    conn.close()
-
-print("Flow scores table created.")
+def get_taxonomy() -> pd.DataFrame:
+    """Return imported taxonomy records."""
+    return _read_table("taxonomy")
 
 
-def save_classification(df):
+def get_classifications() -> pd.DataFrame:
+    """Return the latest keyword-based flow classifications."""
+    return _read_table("flow_classification")
 
-    conn = get_connection()
 
-    df.to_sql(
-        "flow_classification",
-        conn,
-        if_exists="replace",
-        index=False
-    )
+def get_scores() -> pd.DataFrame:
+    """Return the latest calculated flow scores."""
+    return _read_table("flow_scores")
 
-    conn.close()
-    
-print("Classification table created.")
 
+def save_scores(dataframe: pd.DataFrame) -> None:
+    """Save calculated scores for dashboard and export use."""
+    _save_table(dataframe, "flow_scores")
+
+
+def save_classification(dataframe: pd.DataFrame) -> None:
+    """Save keyword-based capability classifications."""
+    _save_table(dataframe, "flow_classification")
