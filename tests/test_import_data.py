@@ -40,6 +40,38 @@ class ImportDataTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing required columns"):
             load_flows(path)
 
+    def test_empty_flow_file_is_rejected(self) -> None:
+        path = FIXTURE_DIRECTORY / "empty.csv"
+        with self.assertRaisesRegex(ValueError, "CSV file is empty"):
+            load_flows(path)
+
+    def test_empty_taxonomy_file_is_rejected(self) -> None:
+        path = FIXTURE_DIRECTORY / "empty.csv"
+        with self.assertRaisesRegex(ValueError, "CSV file is empty"):
+            load_taxonomy(path)
+
+    def test_invalid_numeric_flow_value_is_rejected(self) -> None:
+        path = FIXTURE_DIRECTORY / "flows_invalid_numeric.csv"
+        with self.assertRaisesRegex(ValueError, "must contain only numeric values"):
+            load_flows(path)
+
+    def test_negative_flow_values_are_rejected(self) -> None:
+        fixtures = {
+            "Run Count": "flows_negative_run_count.csv",
+            "Error Rate": "flows_negative_error_rate.csv",
+            "Manual Time": "flows_negative_manual_time.csv",
+            "Transaction Volume": "flows_negative_transaction_volume.csv",
+        }
+
+        for column, fixture_name in fixtures.items():
+            with self.subTest(column=column):
+                path = FIXTURE_DIRECTORY / fixture_name
+                with self.assertRaisesRegex(
+                    ValueError,
+                    f"Column '{column}' cannot contain negative values",
+                ):
+                    load_flows(path)
+
     def test_duplicate_taxonomy_keywords_are_rejected(self) -> None:
         path = FIXTURE_DIRECTORY / "taxonomy_duplicate_keywords.csv"
         with self.assertRaisesRegex(ValueError, "must be unique"):
