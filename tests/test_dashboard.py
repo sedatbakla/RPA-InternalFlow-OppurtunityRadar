@@ -42,6 +42,28 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(app.metric[0].value, "12")
         self.assertEqual(app.dataframe[3].value.shape, (12, 14))
 
+    def test_empty_filter_state_disables_flow_exports(self) -> None:
+        app = AppTest.from_file("app.py", default_timeout=20)
+        app.run()
+
+        app.multiselect[0].set_value(["Finance"])
+        app.multiselect[1].set_value(["HR"])
+        app.run()
+
+        self.assertFalse(app.exception)
+        self.assertEqual(app.metric[0].value, "0")
+        self.assertEqual(
+            [message.value for message in app.info],
+            ["No flows match this view."] * 3,
+        )
+        self.assertListEqual(
+            [table.value.shape for table in app.dataframe],
+            [(24, 11)],
+        )
+        self.assertTrue(
+            all(button.disabled for button in app.get("download_button"))
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

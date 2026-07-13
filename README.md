@@ -1,172 +1,203 @@
-# INT-05 — Internal Flow Catalog & Opportunity Radar
+# INT-05 - Internal Flow Catalog & Opportunity Radar
 
-A system that analyzes Arya's internal bot/flow history and turns it into new sales opportunities, maintenance priorities, and a catalog of reusable tasks.
+Internal Flow Catalog & Opportunity Radar analyzes Arya's historical flows and
+turns them into product opportunities, operational risk priorities, customer
+growth recommendations, and reusable marketplace tasks.
 
-**Deadline:** July 17 (Friday)
-**Team:** [Merve Mızraklı] (Software Engineer) · [Sedat Bakla] (Computer Engineer) · [Beyza Öztürk] (Industrial Engineer)
+**Repository:** https://github.com/sedatbakla/RPA-InternalFlow-OppurtunityRadar
 
----
+**Target Python version:** 3.13
 
-## 1. What Problem Does This Solve?
+## Features
 
-Arya has a history of internal bots and flows, but this data is not organized. This project turns raw flow data into a scored, ranked list, so the team can quickly see:
-- Which flows are **good opportunities** to turn into products
-- Which flows are **risky** and need attention
-- Which flows could be **sold to more customers**
+- Validates and imports the flow catalog and capability taxonomy CSV files.
+- Classifies flow names through keyword-to-capability matching.
+- Calculates opportunity, product, business impact, risk, and priority scores.
+- Shows portfolio metrics, Top 10 opportunities, and high-risk flows.
+- Filters results by department, capability, opportunity score, and risk level.
+- Recommends missing capabilities to customers based on existing adoption.
+- Exports filtered scored results and marketplace-ready tasks as CSV files.
+- Automatically prepares SQLite data when the application starts without a
+  ready score table.
+- Includes automated unit, pipeline, export, recommendation, and Streamlit
+  interaction tests.
 
----
+## Architecture
 
-## 2. System Overview
-
+```text
+CSV -> SQLite -> Classification -> Scoring -> Recommendations -> Dashboard/Export
 ```
-CSV files → SQLite database → Classification → Scoring → Dashboard
-```
 
-| Layer | Tool | Owner |
-|---|---|---|
-| Data storage | SQLite (`arya.db`) | [Merve] |
-| Classification (keyword matching) | Python / pandas | [Merve] |
-| Scoring | Python / pandas | [Merve] |
-| Dashboard | Streamlit | [Sedat] |
+| Component | Responsibility |
+|---|---|
+| `import_data.py` | Validates CSV inputs and imports flow and taxonomy tables |
+| `database.py` | Provides project-local SQLite read and write helpers |
+| `classifier.py` | Maps flow names to predicted capabilities |
+| `scoring.py` | Calculates dashboard-ready scores and business levels |
+| `recommendation.py` | Finds customer-capability gaps and reference flows |
+| `export.py` | Builds scored and marketplace CSV outputs |
+| `pipeline.py` | Coordinates import, classification, and scoring |
+| `app.py` | Renders the Streamlit dashboard and active-filter exports |
 
----
+The generated database is stored at `db/arya.db`. Database files are ignored by
+Git and are rebuilt from the tracked CSV files when required.
 
-## 3. Data Files
+## Data Inputs
 
-### `data/flow_catalog_sample.csv` (110 rows)
-Sample flow records.
+### `data/flow_catalog_sample.csv`
+
+The project catalog contains 110 flow records with these source columns:
 
 | Column | Meaning |
 |---|---|
-| Flow ID | Unique record number |
-| Flow Name | Name of the bot/flow (used for classification) |
-| Customer | Which customer uses it (`Internal` = used inside the company) |
-| Department | Team that owns the flow |
-| Capability | Business category (ground truth, used to test the classifier) |
-| Run Count | How many times it runs per month |
-| Error Rate | Error percentage |
-| Manual Time | Minutes it used to take manually, before automation |
-| Transaction Volume | Monthly transaction count |
-| Customer Count | Number of different customers using this Capability |
+| `Flow ID` | Unique integer flow identifier |
+| `Flow Name` | Flow name used during keyword classification |
+| `Customer` | Customer currently using the flow |
+| `Department` | Department responsible for the flow |
+| `Capability` | Ground-truth capability used to evaluate classification |
+| `Run Count` | Monthly execution count |
+| `Error Rate` | Error percentage used by risk scoring |
+| `Manual Time` | Manual processing time before automation |
+| `Transaction Volume` | Monthly transaction volume |
+
+`Customer Count` is not stored in the source CSV. It is derived in memory and
+in SQLite as the number of unique customers using each predicted capability.
 
 ### `data/task_capability_taxonomy.csv`
-A keyword dictionary. If a keyword (e.g. "Invoice") appears in the Flow Name, the flow is classified under the matching Capability (e.g. "Finance").
 
-### Demo files
-`flow_catalog_demo.csv` (10 rows) and `task_capability_taxonomy_demo.csv` — small versions for quick testing and presentations.
+The taxonomy contains 40 keyword-to-capability mappings. Classification uses
+case-insensitive keyword matching and stores the prediction, matched keyword,
+original capability, and ground-truth comparison result.
 
----
+## Scoring Model
 
-## 4. How Classification Works
+All normalized values use a 0-100 scale.
 
-`classifier.py` checks each Flow Name against the keyword list in the taxonomy file. The first matching keyword decides the Capability. If no keyword matches, the flow is labeled `"Other"`.
+| Score | Formula |
+|---|---|
+| Usage | `Run Count / max(Run Count) * 100` |
+| Risk | `min(Error Rate * 10, 100)` |
+| Time Saving | `Manual Time / max(Manual Time) * 100` |
+| Resell | `Customer Count / max(Customer Count) * 100` |
+| Transaction | `Transaction Volume / max(Transaction Volume) * 100` |
+| Product | `Usage * 0.60 + Resell * 0.40` |
+| Business Impact | `Transaction * 0.60 + Time Saving * 0.40` |
+| Criticality | `Transaction * 0.50 + Usage * 0.50` |
+| Opportunity | `Usage * 0.30 + Transaction * 0.25 + Product * 0.30 + Time Saving * 0.15 - Risk * 0.20` |
+| Priority | `Risk * 0.60 + Criticality * 0.40` |
 
-The result is saved in a separate table called `flow_classification`.
+Score levels:
 
-> **Known issue:** The scoring step currently does not read from `flow_classification`. It uses the Capability column that already exists in the original CSV file. This works for testing (because we already know the "correct" answer), but in a real production case with new, unlabeled flows, this connection needs to be built. See Section 8.
+| Level type | Thresholds |
+|---|---|
+| Risk | Low `<30`, Medium `30-59.999`, High `60-79.999`, Critical `>=80` |
+| Opportunity | Low `<30`, Medium `30-59.999`, High `>=60` |
+| Priority | Low `<30`, Medium `30-49.999`, High `50-69.999`, Critical `>=70` |
 
----
+## Setup
 
-## 5. How Scoring Works
+Clone the repository and switch to the project directory:
 
-Each flow gets several scores, all on a 0–100 scale (except where noted):
-
-| Score | Formula | Meaning |
-|---|---|---|
-| Usage Score | Run Count ÷ max(Run Count) × 100 | How often the flow is used |
-| Risk Score | Error Rate × 10 (capped at 100) | How risky/error-prone the flow is |
-| Time Saving Score | Manual Time ÷ max(Manual Time) × 100 | How much manual work it saves |
-| Resell Score | Customer Count ÷ max(Customer Count) × 100 | How reusable/sellable it is |
-| Transaction (normalized) | Transaction Volume ÷ max(Transaction Volume) × 100 | Business volume, scaled |
-| Product Score | Usage × 0.6 + Resell × 0.4 | How ready the flow is to become a product |
-| Business Impact | Transaction × 0.6 + Time Saving × 0.4 | Overall business value |
-| Criticality Score | Transaction × 0.5 + Usage × 0.5 | How important the flow is to watch |
-
-**Final score:**
-```
-Opportunity Score = (Usage × 0.30) + (Transaction × 0.25) + (Product × 0.30) + (Time Saving × 0.15) − (Risk × 0.20)
-```
-
-The first four weights add up to 100%. Risk is subtracted separately, as a penalty — a flow that is very risky (many errors) should score lower, even if it looks good on the other metrics.
-
-**Note on normalization:** most scores use "divide by the maximum value" (not min-max). Risk Score uses a different method (multiply by 10, then cap at 100). This means all scores are 0–100, but they are not all calculated the same way.
-
----
-
-## 6. Setup and Run Order
-
-Because the database file (`arya.db`) is not stored in GitHub (see `.gitignore`), you must build it yourself the first time:
-
-```bash
-# 1) Clone the repo
-git clone [repo-link]
-cd [project-folder]
-
-# 2) Install requirements
-pip install -r requirements.txt
-
-# 3) Run these in order:
-python import_csv.py     # creates arya.db and loads the CSV data
-python classifier.py     # classifies flows, saves to flow_classification table
-python scoring.py        # calculates scores, saves to flow_scores table
-
-# 4) Start the dashboard
-streamlit run dashboard.py
+```powershell
+git clone https://github.com/sedatbakla/RPA-InternalFlow-OppurtunityRadar.git
+cd RPA-InternalFlow-OppurtunityRadar
+git switch sedat
 ```
 
-**You must run the scripts in this exact order** the first time, or later scripts will fail with a "no such table" error.
+Create and activate a Python 3.13 virtual environment on Windows:
 
----
+```powershell
+py -3.13 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-## 7. Required Features — Status
+Start the dashboard from the repository root:
 
-- [x] CSV import
-- [x] Keyword-based classification
-- [x] Scoring (multiple metrics + final Opportunity Score)
-- [ ] Dashboard connected to real data *(currently shows sample/placeholder data only)*
-- [ ] Top 10 opportunities view
-- [ ] Risky flows view
-- [ ] Customer expansion suggestions
-- [ ] Export to marketplace format
-- [ ] Connect classifier output to scoring (currently scoring uses the original CSV's Capability column, not the classifier's prediction)
+```powershell
+streamlit run app.py
+```
 
----
+The application reads an existing `flow_scores` table when it is ready. If the
+database or score table is missing or incomplete, it automatically imports the
+CSV files, classifies the flows, calculates scores, and creates the required
+SQLite tables.
 
-## 8. Known Issues
+To rebuild every pipeline table manually:
 
-1. **Dashboard not connected yet.** `dashboard.py` still uses sample data (`Project A`, `Project B`...) instead of reading from the `flow_scores` table.
-2. **Classifier and scoring are not linked.** The classifier writes its prediction to `flow_classification`, but scoring still reads the Capability column from the raw `flows` table. This should be connected before the system is used on new, unlabeled data.
-3. **Mixed normalization methods.** Most scores use max-normalization; Risk Score uses a different formula. This is documented above but could be made consistent in a future version.
+```powershell
+python pipeline.py
+```
 
----
+## Dashboard
 
-## 9. Test Scenarios
+The application provides four main views:
 
-### Basic checks
-| # | Test | Expected result |
-|---|---|---|
-| T1 | Import `flow_catalog_sample.csv` | All 110 rows load without errors |
-| T2 | Classify a flow named "Invoice Processing" | Should return Capability = "Finance" |
-| T3 | Run scoring on all 110 rows | Every row gets an Opportunity Score, none are empty |
+- **Top opportunities:** the ten highest opportunity scores in the active scope.
+- **Risk monitoring:** flows with High or Critical risk levels.
+- **Customer growth:** capabilities not currently used by each target customer,
+  based on the strongest non-Critical reference flow.
+- **All flows:** the complete filtered scored portfolio.
 
-### Business logic checks
-| # | Test | Why it matters |
-|---|---|---|
-| T4 | Compare two flows with the same Capability, one used by 10 customers and one used by 1 | The one with 10 customers should score higher on Resell Score |
-| T5 | A flow with high Run Count and high Error Rate | Should appear near the top of the "risky flows" list once the dashboard is connected |
+Sidebar filters update flow metrics, flow tables, and downloads. Customer growth
+uses the complete portfolio as its usage baseline and has a separate customer
+selector.
 
----
+## Exports
 
-## 10. Team
+- **Scored results:** all currently filtered scored flow columns.
+- **Marketplace tasks:** task-oriented columns, customer reach, productization
+  score, opportunity score, risk, priority, and marketplace status.
+
+Both exports use Excel-compatible UTF-8 CSV encoding.
+
+## Tests
+
+Run the complete automated test suite from the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+The suite covers CSV validation, classification, score formulas, automatic
+pipeline preparation, recommendations, exports, dashboard filters, empty-result
+states, and download availability. Test databases are isolated from
+`db/arya.db`.
+
+## Streamlit Community Cloud
+
+Use these settings when creating the application at
+https://share.streamlit.io:
+
+| Setting | Value |
+|---|---|
+| Repository | `sedatbakla/RPA-InternalFlow-OppurtunityRadar` |
+| Branch | `sedat` |
+| Entrypoint | `app.py` |
+| Python | `3.13` |
+| Secrets | None required |
+
+**Live application:** Pending
+
+**Demo video:** Pending
+
+## Known Limitations
+
+- Classification is deterministic keyword matching, not a machine learning
+  model; the first taxonomy match wins.
+- Max normalization makes scores relative to the current dataset.
+- Risk uses a direct error-rate formula instead of max normalization.
+- SQLite is local to the application instance and is regenerated from CSV when
+  unavailable; it is not a shared production database.
+- Authentication, authorization, and user-specific portfolios are not included.
+- The marketplace export is a project-defined task format, not a certified
+  external marketplace API contract.
+
+## Team
 
 | Name | Role | Responsibility |
 |---|---|---|
-| [Merve Mızraklı] | Software Engineer | Data processing, classification, scoring code |
-| [Sedat Bakla] | Computer Engineer | Dashboard, system architecture, integration |
-| [Beyza Öztürk] | Industrial Engineer | Data design, scoring logic, documentation |
-
----
-
-## 11. Demo
-
-*(demo video link goes here)*
+| Merve Mızraklı | Software Engineer | Data processing, classification, and scoring |
+| Sedat Bakla | Computer Engineer | Architecture, integration, dashboard, and technical demo |
+| Beyza Öztürk | Industrial Engineer | Data design, scoring criteria, test scenarios, and documentation |
