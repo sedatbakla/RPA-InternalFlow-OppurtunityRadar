@@ -324,7 +324,7 @@ Use these deployment settings:
 - SQLite is local to the application instance and is used only for sample data.
 - Authentication, authorization, and user-specific portfolios are not included.
 - Marketplace export is a project-defined format, not a certified external API.
-
+- Marketplace status only escalates to "Risk Review" when Risk Level is Critical. A flow with High (but not Critical) risk and a high opportunity score can still be marked "Ready." The team discussed raising this threshold to include High risk but kept the original rule for this submission.
 ## Team
 
 | Name | Role | Responsibility |
