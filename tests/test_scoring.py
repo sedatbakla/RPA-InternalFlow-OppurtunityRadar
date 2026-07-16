@@ -50,6 +50,21 @@ class ScoringTests(unittest.TestCase):
         self.assertEqual(result.loc[1, "Opportunity Level"], "High")
         self.assertEqual(result.loc[2, "Priority Level"], "High")
 
+    def test_department_matching_is_included_in_scored_output(self) -> None:
+        flows, classifications = build_scoring_inputs()
+        classifications["Predicted Capability"] = ["Finance", "HR"]
+
+        result = score_flows(flows, classifications)
+
+        self.assertListEqual(
+            result["Predicted Department"].tolist(),
+            ["Finance", "HR"],
+        )
+        self.assertListEqual(
+            result["Department Match"].tolist(),
+            ["Review", "Review"],
+        )
+
     def test_mismatched_classification_ids_are_rejected(self) -> None:
         flows, classifications = build_scoring_inputs()
         classifications.loc[1, "Flow ID"] = 3

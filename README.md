@@ -1,8 +1,8 @@
 # INT-05 - Internal Flow Catalog & Opportunity Radar
 
-Internal Flow Catalog & Opportunity Radar analyzes Arya's historical flows and
-turns them into product opportunities, operational risk priorities, customer
-growth recommendations, and reusable marketplace tasks.
+Internal Flow Catalog & Opportunity Radar analyzes internal automation flows and
+turns them into product opportunities, operational risk priorities, department
+matches, customer growth recommendations, and reusable marketplace tasks.
 
 **Repository:** https://github.com/sedatbakla/RPA-InternalFlow-OppurtunityRadar
 
@@ -10,89 +10,56 @@ growth recommendations, and reusable marketplace tasks.
 
 ## Features
 
-- Validates and imports the flow catalog and capability taxonomy CSV files.
-- Classifies flow names through keyword-to-capability matching.
-- Calculates opportunity, product, business impact, risk, and priority scores.
-- Shows portfolio metrics, Top 10 opportunities, and high-risk flows.
-- Filters results by department, capability, opportunity score, and risk level.
-- Recommends missing capabilities to customers based on existing adoption.
-- Exports filtered scored results and marketplace-ready tasks as CSV files.
-- Automatically prepares SQLite data when the application starts without a
-  ready score table.
-- Includes automated unit, pipeline, export, recommendation, and Streamlit
-  interaction tests.
+- Uses the bundled sample catalog or an uploaded CSV/XLSX flow catalog.
+- Processes uploaded files entirely in memory without changing repository data.
+- Validates file structure, required values, numeric values, encoding, size, and
+  duplicate columns before scoring.
+- Classifies flow names through the capability taxonomy.
+- Matches predicted capabilities to target departments and flags mismatches.
+- Calculates opportunity, productization, business impact, risk, and priority
+  scores without changing the original scoring formulas.
+- Explains productization and opportunity formulas inside the dashboard.
+- Shows summary metrics, department opportunity charts, and risk distribution.
+- Provides Top 10 opportunities, risk monitoring, customer growth, and all-flow
+  views.
+- Filters by source department, capability, department match, opportunity score,
+  and risk level.
+- Exports active scored results and marketplace-ready tasks as CSV files.
+- Automatically prepares SQLite sample data when no ready score table exists.
 
 ## Architecture
 
+The sample dataset uses the project-local SQLite pipeline:
+
 ```text
-CSV -> SQLite -> Classification -> Scoring -> Recommendations -> Dashboard/Export
+Sample CSV -> SQLite -> Classification -> Department Matching -> Scoring
+           -> Recommendations -> Dashboard/Export
+```
+
+Uploaded datasets use the same business logic without database persistence:
+
+```text
+Uploaded CSV/XLSX -> In-memory Validation -> Classification
+                  -> Department Matching -> Scoring
+                  -> Recommendations -> Dashboard/Export
 ```
 
 | Component | Responsibility |
 |---|---|
-| `import_data.py` | Validates CSV inputs and imports flow and taxonomy tables |
+| `data_contract.py` | Defines required source columns and capability-to-department rules |
+| `dataset_upload.py` | Reads, validates, and secures uploaded CSV/XLSX content |
+| `import_data.py` | Validates project CSV files and imports sample data into SQLite |
 | `database.py` | Provides project-local SQLite read and write helpers |
-| `classifier.py` | Maps flow names to predicted capabilities |
+| `classifier.py` | Maps flow names to capabilities and capabilities to departments |
 | `scoring.py` | Calculates dashboard-ready scores and business levels |
 | `recommendation.py` | Finds customer-capability gaps and reference flows |
 | `export.py` | Builds scored and marketplace CSV outputs |
-| `pipeline.py` | Coordinates import, classification, and scoring |
-| `app.py` | Renders the Streamlit dashboard and active-filter exports |
+| `pipeline.py` | Coordinates persistent and in-memory processing pipelines |
+| `app.py` | Manages data source state and renders the Streamlit dashboard |
 
-The generated database is stored at `db/arya.db`. Database files are ignored by
-Git and are rebuilt from the tracked CSV files when required.
-
-## Data Inputs
-
-### `data/flow_catalog_sample.csv`
-
-The project catalog contains 110 flow records with these source columns:
-
-| Column | Meaning |
-|---|---|
-| `Flow ID` | Unique integer flow identifier |
-| `Flow Name` | Flow name used during keyword classification |
-| `Customer` | Customer currently using the flow |
-| `Department` | Department responsible for the flow |
-| `Capability` | Ground-truth capability used to evaluate classification |
-| `Run Count` | Monthly execution count |
-| `Error Rate` | Error percentage used by risk scoring |
-| `Manual Time` | Manual processing time before automation |
-| `Transaction Volume` | Monthly transaction volume |
-
-`Customer Count` is not stored in the source CSV. It is derived in memory and
-in SQLite as the number of unique customers using each predicted capability.
-
-### `data/task_capability_taxonomy.csv`
-
-The taxonomy contains 40 keyword-to-capability mappings. Classification uses
-case-insensitive keyword matching and stores the prediction, matched keyword,
-original capability, and ground-truth comparison result.
-
-## Scoring Model
-
-All normalized values use a 0-100 scale.
-
-| Score | Formula |
-|---|---|
-| Usage | `Run Count / max(Run Count) * 100` |
-| Risk | `min(Error Rate * 10, 100)` |
-| Time Saving | `Manual Time / max(Manual Time) * 100` |
-| Resell | `Customer Count / max(Customer Count) * 100` |
-| Transaction | `Transaction Volume / max(Transaction Volume) * 100` |
-| Product | `Usage * 0.60 + Resell * 0.40` |
-| Business Impact | `Transaction * 0.60 + Time Saving * 0.40` |
-| Criticality | `Transaction * 0.50 + Usage * 0.50` |
-| Opportunity | `Usage * 0.30 + Transaction * 0.25 + Product * 0.30 + Time Saving * 0.15 - Risk * 0.20` |
-| Priority | `Risk * 0.60 + Criticality * 0.40` |
-
-Score levels:
-
-| Level type | Thresholds |
-|---|---|
-| Risk | Low `<30`, Medium `30-59.999`, High `60-79.999`, Critical `>=80` |
-| Opportunity | Low `<30`, Medium `30-59.999`, High `>=60` |
-| Priority | Low `<30`, Medium `30-49.999`, High `50-69.999`, Critical `>=70` |
+The generated sample database is stored at `db/arya.db`. Database files are
+ignored by Git and rebuilt from the tracked CSV files when required. Uploaded
+files are never written to this database or to the repository.
 
 ## Setup
 
@@ -119,38 +86,193 @@ Start the dashboard from the repository root:
 streamlit run app.py
 ```
 
-The application reads an existing `flow_scores` table when it is ready. If the
-database or score table is missing or incomplete, it automatically imports the
-CSV files, classifies the flows, calculates scores, and creates the required
-SQLite tables.
-
-To rebuild every pipeline table manually:
+To rebuild every sample-data pipeline table manually:
 
 ```powershell
 python pipeline.py
 ```
 
+## Data Sources
+
+The sidebar starts with a **Data Source** section.
+
+### Sample dataset
+
+`Sample dataset` is selected by default. The application uses:
+
+- `data/flow_catalog_sample.csv`
+- `data/task_capability_taxonomy.csv`
+
+If the database or score table is missing or incomplete, the application
+rebuilds it automatically from these tracked files.
+
+### Upload dataset
+
+1. Select `Upload dataset` in the sidebar.
+2. Use `Upload flow dataset` to select one CSV or XLSX file.
+3. Review the file name, row count, column count, format, and validation status.
+4. Use the dashboard normally after validation succeeds.
+5. Select `Reset to sample dataset` to clear upload and filter state.
+
+A new uploaded file clears selections that belonged to the previous dataset.
+Page reruns reuse validated session data and a content-based cache. The file is
+processed from bytes in memory and is never saved by the application.
+
+## Upload Contract
+
+Supported formats:
+
+- UTF-8 or UTF-8 BOM CSV
+- Comma-delimited CSV
+- Semicolon-delimited CSV
+- XLSX, using the first worksheet
+
+Required source columns:
+
+| Column | Type | Meaning |
+|---|---|---|
+| `Flow ID` | Whole number | Unique flow identifier |
+| `Flow Name` | Text | Name used for keyword classification |
+| `Customer` | Text | Customer currently using the flow |
+| `Department` | Text | Current source department |
+| `Capability` | Text | Ground-truth capability for evaluation |
+| `Run Count` | Non-negative number | Monthly execution count |
+| `Error Rate` | Non-negative number | Error percentage used in risk scoring |
+| `Manual Time` | Non-negative number | Manual effort before automation |
+| `Transaction Volume` | Non-negative number | Monthly transaction volume |
+
+`Customer Count` must not be added to the source file. It is calculated after
+classification as the unique customer count for each predicted capability.
+
+Controlled header normalization removes surrounding whitespace and a BOM,
+ignores letter case for known columns, and treats spaces and underscores as
+equivalent. Unknown aliases are not guessed. Duplicate columns after
+normalization are rejected.
+
+Example CSV:
+
+```csv
+Flow ID,Flow Name,Customer,Department,Capability,Run Count,Error Rate,Manual Time,Transaction Volume
+1,Invoice Processing,Alpha,Finance,Finance,100,1,30,1000
+2,Recruitment Processing,Beta,HR,HR,80,2,20,800
+```
+
+Validation failures list the missing or invalid columns and stop scoring. Empty
+files, files without data rows, inconsistent CSV rows, duplicate headers,
+negative values, invalid numeric values, unreadable workbooks, and unsupported
+formats do not render stale dashboard results.
+
+Upload limits:
+
+- Maximum uploaded file size: 10 MB
+- Maximum data rows: 100,000
+- Maximum expanded XLSX content: 50 MB
+- XLSX processing: first worksheet only
+
+## Classification And Department Matching
+
+Flow names are matched case-insensitively against
+`data/task_capability_taxonomy.csv`. The first matching keyword supplies the
+predicted capability; unmatched names use `Other`.
+
+Known capabilities map to target departments:
+
+| Predicted capability | Matched department |
+|---|---|
+| Finance | Finance |
+| Government Affairs | Government Affairs |
+| HR | HR |
+| IT | IT |
+| Legal | Legal |
+| Operations | Operations |
+| Planning | Planning |
+| Sales | Sales |
+
+Each scored flow contains:
+
+- `Department`: source department from the uploaded or sample catalog
+- `Predicted Department`: department matched from predicted capability
+- `Department Match`: `Matched`, `Review`, or `Source retained`
+
+`Review` means that the matched department differs from the source department.
+`Source retained` is used when a capability has no configured department rule.
+Marketplace tasks use the predicted department when it is available.
+
+## Scoring Model
+
+All normalized values use a 0-100 scale and are recalculated for the active
+dataset.
+
+| Score | Formula |
+|---|---|
+| Usage | `Run Count / max(Run Count) * 100` |
+| Risk | `min(Error Rate * 10, 100)` |
+| Time Saving | `Manual Time / max(Manual Time) * 100` |
+| Resell | `Customer Count / max(Customer Count) * 100` |
+| Transaction | `Transaction Volume / max(Transaction Volume) * 100` |
+| Product | `Usage * 0.60 + Resell * 0.40` |
+| Business Impact | `Transaction * 0.60 + Time Saving * 0.40` |
+| Criticality | `Transaction * 0.50 + Usage * 0.50` |
+| Opportunity | `Usage * 0.30 + Transaction * 0.25 + Product * 0.30 + Time Saving * 0.15 - Risk * 0.20` |
+| Priority | `Risk * 0.60 + Criticality * 0.40` |
+
+Score levels:
+
+| Level type | Thresholds |
+|---|---|
+| Risk | Low `<30`, Medium `30-59.999`, High `60-79.999`, Critical `>=80` |
+| Opportunity | Low `<30`, Medium `30-59.999`, High `>=60` |
+| Priority | Low `<30`, Medium `30-49.999`, High `50-69.999`, Critical `>=70` |
+
+The same productization and opportunity formulas are shown in the dashboard's
+`Scoring methodology` section.
+
 ## Dashboard
 
-The application provides four main views:
+Summary metrics are calculated from the active filtered dataset:
 
-- **Top opportunities:** the ten highest opportunity scores in the active scope.
-- **Risk monitoring:** flows with High or Critical risk levels.
-- **Customer growth:** capabilities not currently used by each target customer,
-  based on the strongest non-Critical reference flow.
-- **All flows:** the complete filtered scored portfolio.
+- Visible flows
+- Average opportunity
+- High opportunities
+- Critical risks
+- Department match rate
 
-Sidebar filters update flow metrics, flow tables, and downloads. Customer growth
-uses the complete portfolio as its usage baseline and has a separate customer
-selector.
+Graphical views show:
+
+- Average opportunity score by matched department
+- Flow count by risk level
+
+Dashboard tabs:
+
+- **Top opportunities:** the ten highest opportunity scores in active filters
+- **Risk monitoring:** High and Critical risk flows
+- **Customer growth:** missing customer capabilities based on the strongest
+  non-Critical reference flow
+- **All flows:** the complete filtered scored portfolio
+
+All flow tables include source and predicted department fields. Empty filter
+results show clear messages and disable both export buttons.
 
 ## Exports
 
-- **Scored results:** all currently filtered scored flow columns.
-- **Marketplace tasks:** task-oriented columns, customer reach, productization
-  score, opportunity score, risk, priority, and marketplace status.
+Both exports use the same active, filtered, scored DataFrame displayed by the
+dashboard.
 
-Both exports use Excel-compatible UTF-8 CSV encoding.
+- **Scored results:** complete calculated flow results
+- **Marketplace tasks:** task name/type, matched department, customer reach,
+  productization, opportunity, risk, priority, and marketplace status
+
+Sample-data filenames remain:
+
+- `internalflow_scored_results.csv`
+- `internalflow_marketplace_tasks.csv`
+
+Uploaded filenames are based on a sanitized source stem, for example:
+
+- `company_flows_scored.csv`
+- `company_flows_marketplace_tasks.csv`
+
+CSV downloads use Excel-compatible UTF-8 BOM encoding.
 
 ## Tests
 
@@ -160,15 +282,15 @@ Run the complete automated test suite from the repository root:
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-The suite covers CSV validation, classification, score formulas, automatic
-pipeline preparation, recommendations, exports, dashboard filters, empty-result
-states, and download availability. Test databases are isolated from
-`db/arya.db`.
+The suite covers sample CSV validation, uploaded CSV/XLSX parsing, delimiter and
+header normalization, invalid schemas and numeric values, classification,
+department matching, score formulas, SQLite pipeline recovery, recommendations,
+both exports, dynamic filters, zero-result views, upload replacement, and reset
+to the sample dataset. Test databases are isolated from `db/arya.db`.
 
 ## Streamlit Community Cloud
 
-Use these settings when creating the application at
-https://share.streamlit.io:
+Use these deployment settings:
 
 | Setting | Value |
 |---|---|
@@ -184,15 +306,14 @@ https://share.streamlit.io:
 
 ## Known Limitations
 
-- Classification is deterministic keyword matching, not a machine learning
-  model; the first taxonomy match wins.
-- Max normalization makes scores relative to the current dataset.
+- Classification uses deterministic first-keyword matching, not machine learning.
+- Capability-to-department matching uses the explicit project mapping above.
+- Max normalization makes scores relative to the active dataset.
 - Risk uses a direct error-rate formula instead of max normalization.
-- SQLite is local to the application instance and is regenerated from CSV when
-  unavailable; it is not a shared production database.
+- XLSX uploads read only the first worksheet.
+- SQLite is local to the application instance and is used only for sample data.
 - Authentication, authorization, and user-specific portfolios are not included.
-- The marketplace export is a project-defined task format, not a certified
-  external marketplace API contract.
+- Marketplace export is a project-defined format, not a certified external API.
 
 ## Team
 

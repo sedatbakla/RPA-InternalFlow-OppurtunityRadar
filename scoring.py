@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from data_contract import match_department
 from database import get_all_flows, get_classifications, save_scores
 
 
@@ -116,8 +117,13 @@ def _merge_classifications(
         )
 
     classification_columns = ["Flow ID", "Predicted Capability"]
-    if "Matched Keyword" in classifications.columns:
-        classification_columns.append("Matched Keyword")
+    for optional_column in (
+        "Matched Keyword",
+        "Predicted Department",
+        "Department Match",
+    ):
+        if optional_column in classifications.columns:
+            classification_columns.append(optional_column)
 
     merged = flows.merge(
         classifications[classification_columns],
@@ -136,6 +142,29 @@ def _merge_classifications(
 
     merged = merged.rename(columns={"Predicted Capability": "Capability"})
     merged["Capability"] = merged["Capability"].astype(str).str.strip()
+    if (
+        "Predicted Department" not in merged.columns
+        or "Department Match" not in merged.columns
+    ):
+        department_matches = [
+            match_department(capability, department)
+            for capability, department in zip(
+                merged["Capability"],
+                merged["Department"],
+                strict=True,
+            )
+        ]
+        merged["Predicted Department"] = [
+            department for department, _ in department_matches
+        ]
+        merged["Department Match"] = [
+            status for _, status in department_matches
+        ]
+
+    merged["Predicted Department"] = (
+        merged["Predicted Department"].astype(str).str.strip()
+    )
+    merged["Department Match"] = merged["Department Match"].astype(str).str.strip()
     merged["Customer Count"] = (
         merged.groupby("Capability")["Customer"].transform("nunique").astype(int)
     )
@@ -151,7 +180,10 @@ def score_flows(
 
     for column in NUMERIC_COLUMNS:
         converted = pd.to_numeric(scored[column], errors="coerce")
-        if converted.isna().any():
+        invalid_numeric = converted.isna() | converted.isin(
+            [float("inf"), float("-inf")]
+        )
+        if invalid_numeric.any():
             raise ValueError(f"Column '{column}' must contain only numeric values")
         if (converted < 0).any():
             raise ValueError(f"Column '{column}' cannot contain negative values")
@@ -207,6 +239,8 @@ def score_flows(
         "Flow Name",
         "Customer",
         "Department",
+        "Predicted Department",
+        "Department Match",
         "Capability",
         "Original Capability",
         "Matched Keyword",

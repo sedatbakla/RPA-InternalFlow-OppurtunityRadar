@@ -86,12 +86,17 @@ def build_marketplace_export(scores: pd.DataFrame) -> pd.DataFrame:
         ordered_scores["Risk Level"].eq("Critical")
     ] = "Risk Review"
 
+    target_departments = (
+        ordered_scores["Predicted Department"]
+        if "Predicted Department" in ordered_scores.columns
+        else ordered_scores["Department"]
+    )
     task_description = (
         ordered_scores["Flow Name"].astype(str)
         + " is a "
         + ordered_scores["Capability"].astype(str)
-        + " flow used by "
-        + ordered_scores["Department"].astype(str)
+        + " flow matched to "
+        + target_departments.astype(str)
         + "."
     )
 
@@ -100,7 +105,7 @@ def build_marketplace_export(scores: pd.DataFrame) -> pd.DataFrame:
             "Task ID": ordered_scores["Flow ID"],
             "Task Name": ordered_scores["Flow Name"],
             "Task Type": ordered_scores["Capability"],
-            "Department": ordered_scores["Department"],
+            "Department": target_departments,
             "Reference Customer": ordered_scores["Customer"],
             "Task Description": task_description,
             "Monthly Run Count": ordered_scores["Run Count"],

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from data_contract import match_department
 from database import get_all_flows, get_taxonomy, save_classification
 
 
@@ -76,7 +77,7 @@ def classify_flow(flow_name: str, taxonomy: pd.DataFrame) -> str:
 
 
 def classify_flows(flows: pd.DataFrame, taxonomy: pd.DataFrame) -> pd.DataFrame:
-    """Classify all flows while preserving identifiers and ground truth."""
+    """Classify flows and derive an auditable target department."""
     _validate_columns(flows, FLOW_REQUIRED_COLUMNS, "Flow")
     if flows["Flow ID"].duplicated().any():
         raise ValueError("Flow IDs must be unique")
@@ -98,6 +99,25 @@ def classify_flows(flows: pd.DataFrame, taxonomy: pd.DataFrame) -> pd.DataFrame:
             result["Predicted Capability"].str.casefold()
             == result["Original Capability"].str.casefold()
         )
+
+    if "Department" in flows.columns:
+        result["Original Department"] = (
+            flows["Department"].astype(str).str.strip()
+        )
+        department_matches = [
+            match_department(capability, department)
+            for capability, department in zip(
+                result["Predicted Capability"],
+                result["Original Department"],
+                strict=True,
+            )
+        ]
+        result["Predicted Department"] = [
+            department for department, _ in department_matches
+        ]
+        result["Department Match"] = [
+            status for _, status in department_matches
+        ]
 
     return result
 

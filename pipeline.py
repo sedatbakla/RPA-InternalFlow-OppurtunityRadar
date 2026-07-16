@@ -6,10 +6,10 @@ from collections.abc import Iterable
 
 import pandas as pd
 
-from classifier import run_classification
+from classifier import classify_flows, run_classification
 from database import get_scores
-from import_data import import_flows, import_taxonomy
-from scoring import run_scoring
+from import_data import import_flows, import_taxonomy, load_taxonomy
+from scoring import run_scoring, score_flows
 
 
 def run_pipeline() -> pd.DataFrame:
@@ -18,6 +18,16 @@ def run_pipeline() -> pd.DataFrame:
     import_taxonomy()
     run_classification()
     return run_scoring()
+
+
+def process_flow_dataset(
+    flows: pd.DataFrame,
+    taxonomy: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Classify and score flow records entirely in memory."""
+    active_taxonomy = load_taxonomy() if taxonomy is None else taxonomy
+    classifications = classify_flows(flows, active_taxonomy)
+    return score_flows(flows, classifications)
 
 
 def load_or_build_scores(

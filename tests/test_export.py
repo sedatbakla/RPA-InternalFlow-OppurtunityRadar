@@ -22,6 +22,7 @@ def build_export_scores() -> pd.DataFrame:
             "Flow Name": ["Flow A", "Flow B"],
             "Customer": ["Alpha", "Beta"],
             "Department": ["IT", "Finance"],
+            "Predicted Department": ["Finance", "Planning"],
             "Capability": ["IT", "Finance"],
             "Run Count": [100, 50],
             "Transaction Volume": [200, 100],
@@ -51,6 +52,10 @@ class ExportTests(unittest.TestCase):
         self.assertListEqual(
             result["Marketplace Status"].tolist(),
             ["Ready", "Risk Review"],
+        )
+        self.assertListEqual(
+            result["Department"].tolist(),
+            ["Finance", "Planning"],
         )
 
     def test_csv_export_uses_utf8_bom(self) -> None:
