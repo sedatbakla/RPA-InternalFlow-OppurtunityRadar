@@ -300,7 +300,7 @@ Use these deployment settings:
 | Python | `3.13` |
 | Secrets | None required |
 
-**Live application:** Pending
+**Live application:** [https://flow-radar.streamlit.app](https://flow-radar.streamlit.app)
 
 **Demo video:** Pending
 
