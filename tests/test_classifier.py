@@ -29,6 +29,7 @@ class ClassifierTests(unittest.TestCase):
             {
                 "Flow ID": [1, 2, 3],
                 "Flow Name": ["Invoice approval", "New hire", "Archive logs"],
+                "Department": ["Finance", "IT", "IT"],
                 "Capability": ["Finance", "HR", "IT"],
             }
         )
@@ -44,6 +45,14 @@ class ClassifierTests(unittest.TestCase):
             [True, True, False],
         )
         self.assertTrue(pd.isna(result.loc[2, "Matched Keyword"]))
+        self.assertListEqual(
+            result["Predicted Department"].tolist(),
+            ["Finance", "HR", "IT"],
+        )
+        self.assertListEqual(
+            result["Department Match"].tolist(),
+            ["Matched", "Review", "Source retained"],
+        )
 
     def test_duplicate_flow_ids_are_rejected(self) -> None:
         flows = pd.DataFrame(

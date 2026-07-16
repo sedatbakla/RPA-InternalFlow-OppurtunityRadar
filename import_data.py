@@ -6,6 +6,13 @@ from pathlib import Path
 
 import pandas as pd
 
+from data_contract import (
+    FLOW_NUMERIC_COLUMNS,
+    FLOW_REQUIRED_COLUMNS,
+    FLOW_TEXT_COLUMNS,
+    TAXONOMY_REQUIRED_COLUMNS,
+    normalize_column_names,
+)
 from database import get_connection
 
 
@@ -14,30 +21,9 @@ DATA_DIRECTORY = PROJECT_ROOT / "data"
 FLOW_CATALOG_PATH = DATA_DIRECTORY / "flow_catalog_sample.csv"
 TAXONOMY_PATH = DATA_DIRECTORY / "task_capability_taxonomy.csv"
 
-FLOW_REQUIRED_COLUMNS = (
-    "Flow ID",
-    "Flow Name",
-    "Customer",
-    "Department",
-    "Capability",
-    "Run Count",
-    "Error Rate",
-    "Manual Time",
-    "Transaction Volume",
-)
-TAXONOMY_REQUIRED_COLUMNS = ("Keyword", "Capability")
-FLOW_NUMERIC_COLUMNS = (
-    "Flow ID",
-    "Run Count",
-    "Error Rate",
-    "Manual Time",
-    "Transaction Volume",
-)
-FLOW_TEXT_COLUMNS = ("Flow Name", "Customer", "Department", "Capability")
 
-
-def _read_csv(path: Path, required_columns: tuple[str, ...]) -> pd.DataFrame:
-    """Read a non-empty CSV and verify its required columns and values."""
+def _read_csv(path: Path) -> pd.DataFrame:
+    """Read a non-empty project CSV from disk."""
     if not path.is_file():
         raise FileNotFoundError(f"Required CSV file was not found: {path}")
 
@@ -48,18 +34,26 @@ def _read_csv(path: Path, required_columns: tuple[str, ...]) -> pd.DataFrame:
     except pd.errors.ParserError as error:
         raise ValueError(f"CSV file could not be parsed: {path}") from error
 
+    dataframe = dataframe.dropna(how="all").reset_index(drop=True)
     if dataframe.empty:
         raise ValueError(f"CSV file contains no data rows: {path}")
 
-    dataframe.columns = dataframe.columns.str.strip()
-    if dataframe.columns.duplicated().any():
-        raise ValueError(f"CSV file contains duplicate column names: {path}")
+    return normalize_column_names(dataframe)
+
+
+def _validate_required_values(
+    dataframe: pd.DataFrame,
+    required_columns: tuple[str, ...],
+    source_name: str,
+) -> None:
+    """Validate required columns and non-empty values for one dataset."""
+    if dataframe.empty:
+        raise ValueError(f"{source_name} contains no data rows")
 
     missing_columns = sorted(set(required_columns) - set(dataframe.columns))
     if missing_columns:
-        raise ValueError(
-            f"CSV file is missing required columns {missing_columns}: {path}"
-        )
+        missing = ", ".join(missing_columns)
+        raise ValueError(f"{source_name} is missing required columns: {missing}")
 
     empty_columns = [
         column
@@ -70,45 +64,68 @@ def _read_csv(path: Path, required_columns: tuple[str, ...]) -> pd.DataFrame:
         ).any()
     ]
     if empty_columns:
+        empty = ", ".join(empty_columns)
         raise ValueError(
-            f"CSV file contains empty required values in columns {empty_columns}: {path}"
+            f"{source_name} contains empty required values in columns: {empty}"
         )
 
-    return dataframe
 
-
-def load_flows(path: Path = FLOW_CATALOG_PATH) -> pd.DataFrame:
-    """Load flow records and derive customer counts by capability."""
-    flows = _read_csv(path, FLOW_REQUIRED_COLUMNS)
+def prepare_flows(
+    dataframe: pd.DataFrame,
+    source_name: str = "Flow dataset",
+) -> pd.DataFrame:
+    """Normalize and validate flow records, then derive customer counts."""
+    flows = normalize_column_names(
+        dataframe.dropna(how="all").reset_index(drop=True)
+    )
+    _validate_required_values(flows, FLOW_REQUIRED_COLUMNS, source_name)
 
     for column in FLOW_TEXT_COLUMNS:
         flows[column] = flows[column].astype(str).str.strip()
 
     for column in FLOW_NUMERIC_COLUMNS:
         converted = pd.to_numeric(flows[column], errors="coerce")
-        if converted.isna().any():
-            raise ValueError(f"Column '{column}' must contain only numeric values: {path}")
+        invalid_numeric = converted.isna() | converted.isin(
+            [float("inf"), float("-inf")]
+        )
+        if invalid_numeric.any():
+            invalid_rows = (invalid_numeric[invalid_numeric].index + 2).tolist()
+            raise ValueError(
+                f"Column '{column}' must contain only numeric values "
+                f"at CSV/worksheet rows {invalid_rows}: {source_name}"
+            )
         if (converted < 0).any():
-            raise ValueError(f"Column '{column}' cannot contain negative values: {path}")
+            raise ValueError(
+                f"Column '{column}' cannot contain negative values: {source_name}"
+            )
         flows[column] = converted
 
     if (flows["Flow ID"] % 1 != 0).any():
-        raise ValueError(f"Column 'Flow ID' must contain whole numbers: {path}")
+        raise ValueError(
+            f"Column 'Flow ID' must contain whole numbers: {source_name}"
+        )
     flows["Flow ID"] = flows["Flow ID"].astype(int)
 
     if flows["Flow ID"].duplicated().any():
-        raise ValueError(f"Column 'Flow ID' must contain unique values: {path}")
+        raise ValueError(
+            f"Column 'Flow ID' must contain unique values: {source_name}"
+        )
 
     flows["Customer Count"] = (
         flows.groupby("Capability")["Customer"].transform("nunique").astype(int)
     )
-
     return flows
+
+
+def load_flows(path: Path = FLOW_CATALOG_PATH) -> pd.DataFrame:
+    """Load flow records and derive customer counts by capability."""
+    return prepare_flows(_read_csv(path), source_name=str(path))
 
 
 def load_taxonomy(path: Path = TAXONOMY_PATH) -> pd.DataFrame:
     """Load and validate the keyword-to-capability taxonomy."""
-    taxonomy = _read_csv(path, TAXONOMY_REQUIRED_COLUMNS)
+    taxonomy = _read_csv(path)
+    _validate_required_values(taxonomy, TAXONOMY_REQUIRED_COLUMNS, str(path))
     taxonomy["Keyword"] = taxonomy["Keyword"].astype(str).str.strip()
     taxonomy["Capability"] = taxonomy["Capability"].astype(str).str.strip()
 

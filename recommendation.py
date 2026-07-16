@@ -137,7 +137,9 @@ def build_customer_recommendations(
                     "Recommended Capability": capability,
                     "Reference Flow": representative["Flow Name"],
                     "Reference Customer": representative["Customer"],
-                    "Reference Department": representative["Department"],
+                    "Reference Department": representative.get(
+                        "Predicted Department", representative["Department"]
+                    ),
                     "Customer Reach": reach,
                     "Opportunity Score": representative["Opportunity Score"],
                     "Product Score": representative["Product Score"],
