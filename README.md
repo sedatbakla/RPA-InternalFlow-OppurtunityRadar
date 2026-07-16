@@ -227,6 +227,16 @@ Score levels:
 The same productization and opportunity formulas are shown in the dashboard's
 `Scoring methodology` section.
 
+### Marketplace Status Rule
+
+Each exported task receives one of four statuses:
+- `Backlog` (default)
+- `Candidate` — Opportunity Level is Medium
+- `Ready` — Opportunity Level is High
+- `Risk Review` — overrides the above when Risk Level is Critical
+
+Note: High-risk (but not Critical) flows are not automatically flagged for review, even at a high opportunity score. See Known Limitations.
+
 ## Dashboard
 
 Summary metrics are calculated from the active filtered dataset:
