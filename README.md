@@ -312,7 +312,7 @@ Use these deployment settings:
 
 **Live application:** [https://flow-radar.streamlit.app](https://flow-radar.streamlit.app)
 
-**Demo video:** Pending
+**Demo video:** [Pending](https://youtu.be/HJ4tDjz5yBs)
 
 ## Known Limitations
 
